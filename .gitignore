@@ -1,0 +1,4 @@
+node_modules
+package-lock.json
+money.db
+.DS_Store
