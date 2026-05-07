@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Wallet App</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    padding:15px;
+    margin:10px 0;
+    border-radius:10px;
+}
+
+input{
+    padding:8px;
+    margin:5px;
+}
+
+button{
+    padding:8px;
+    cursor:pointer;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    margin:5px 0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>陳玉校</h1>
+
+<div class="card">
+<h2 id="total">0</h2>
+<button onclick="editTotal()">Sửa tổng</button>
+</div>
+
+<div class="card">
+
+<h3>薪水</h3>
+
+<input id="salaryInput">
+<button onclick="addSalary()">Thêm</button>
+
+<div id="salaryList"></div>
+
+</div>
+
+<div class="card">
+
+<h3>費用</h3>
+
+<input id="c">
+<input id="a">
+<input id="n">
+
+<button onclick="addExpense()">Chi</button>
+
+<div id="expenseList"></div>
+
+</div>
+
+<script>
+
+async function load(){
+
+const res = await fetch("/data");
+const d = await res.json();
+
+document.getElementById("total").innerText = d.total;
+
+// salary
+let s = "";
+d.salary.forEach(i=>{
+    s += `
+    <div class="item">
+        +${i.money}
+        <div>
+        <button onclick="editSalary(${i.id},${i.money})">sửa</button>
+        <button onclick="delSalary(${i.id})">xoá</button>
+        </div>
+    </div>`;
+});
+document.getElementById("salaryList").innerHTML = s;
+
+// expense
+let e = "";
+d.expense.forEach(i=>{
+    e += `
+    <div class="item">
+        ${i.category} - ${i.amount}
+        <div>
+        <button onclick="editExpense(${i.id},'${i.category}',${i.amount},'${i.note}')">sửa</button>
+        <button onclick="delExpense(${i.id})">xoá</button>
+        </div>
+    </div>`;
+});
+document.getElementById("expenseList").innerHTML = e;
+
+}
+
+// salary
+async function addSalary(){
+await fetch("/salary",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({money:salaryInput.value})
+});
+load();
+}
+
+async function editSalary(id,m){
+let v = prompt("sửa",m);
+await fetch("/salary/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({money:v})
+});
+load();
+}
+
+async function delSalary(id){
+await fetch("/salary/"+id,{method:"DELETE"});
+load();
+}
+
+// expense
+async function addExpense(){
+await fetch("/expense",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+category:c.value,
+amount:a.value,
+note:n.value
+})
+});
+load();
+}
+
+async function editExpense(id,cate,amount,note){
+let c2 = prompt("cate",cate);
+let a2 = prompt("money",amount);
+let n2 = prompt("note",note);
+
+await fetch("/expense/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+category:c2,
+amount:a2,
+note:n2
+})
+});
+
+load();
+}
+
+async function delExpense(id){
+await fetch("/expense/"+id,{method:"DELETE"});
+load();
+}
+
+// total
+async function editTotal(){
+let t = prompt("new total");
+await fetch("/wallet",{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({total:t})
+});
+load();
+}
+
+load();
+
+</script>
+
+</body>
+</html>
